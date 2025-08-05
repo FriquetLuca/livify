@@ -1,6 +1,6 @@
 {
     "name": "livify",
-    "version": "1.0.3",
+    "version": "1.0.5",
     "main": "bin/index.js",
     "bin": {
         "livify": "bin/livify.js"

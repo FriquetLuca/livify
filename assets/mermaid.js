@@ -1,1 +1,0 @@
-import mermaid from '/_internal/mermaid.esm.min.mjs';mermaid.initialize({startOnLoad:true});

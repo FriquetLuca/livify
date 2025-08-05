@@ -1,4 +1,4 @@
-import mermaid from '/_internal/mermaid.esm.min.mjs';
+import mermaid from "/_internal/mermaid.esm.min.mjs";
 mermaid.initialize({ startOnLoad:true });
 
 interface TimeOut {

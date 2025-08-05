@@ -145,7 +145,7 @@ export async function secludify() {
             watcher.on("all", (item, anyPath) => {
                 if(anyPath === options.templateLocation) {
                     clients.forEach(client => {
-                        client.send("*");
+                        client.send(JSON.stringify(["*"]));
                     });
                 } else {
                     const currentPath = `/${path.relative(options.location, anyPath).replaceAll("\\", "/")}`;

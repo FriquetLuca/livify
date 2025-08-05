@@ -2,10 +2,6 @@ src/
 tests/
 node_modules/
 examples/
-*.test.ts
-*.spec.ts
-*.map
-*.mjs
 build.mjs
 buildCli.mjs
 buildClient.mjs
