@@ -42,6 +42,18 @@ export type LocationTreeOptions = {
     maxDepth?: number,
 };
 
+export function cleanSlashesURL(url: string) {
+  let i = 0;
+  while(i < url.length) {
+    if(url[i] !== "/") {
+      break;
+    }
+    i++;
+  }
+  const unslashURL = url.slice(i, url.length);
+  return `/${unslashURL.split("/").map(u => encodeURIComponent(u)).join("/")}`;
+}
+
 export function locationTree(location: string, opts: LocationTreeOptions = { }): LocationElement|undefined {
     const options = {
       isRoot: true,
@@ -81,7 +93,7 @@ export function locationTree(location: string, opts: LocationTreeOptions = { }):
         contentType: "text/html",
         isRoot: options.isRoot,
         path: location,
-        relativePath: pref.replace(backslashRegexp, "/"),
+        relativePath: cleanSlashesURL(pref.replace(backslashRegexp, "/")),
         name: dirName,
         hasIndex: hasIndexHtml || hasIndexMd,
         content,
@@ -109,7 +121,7 @@ export function locationTree(location: string, opts: LocationTreeOptions = { }):
         contentType: CONTENT_TYPE[extension as keyof typeof CONTENT_TYPE] ?? "text/text",
         isRoot: options.isRoot,
         path: location,
-        relativePath: path.join(options.prefix ?? "/", fileName).replace(backslashRegexp, "/"),
+        relativePath: cleanSlashesURL(path.join(options.prefix ?? "", fileName).replace(backslashRegexp, "/")),
         name,
         extension,
         stats: {

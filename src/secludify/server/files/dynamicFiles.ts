@@ -3,7 +3,7 @@ import fs from 'fs';
 import type { FastifyInstance } from 'fastify';
 import { patchPrefix } from './patchPrefix';
 import { CONTENT_TYPE, type ContentTypeExtension } from '../../http';
-import { loadMetadata, type LocationDirectory, locationTree, type FileData } from '.';
+import { loadMetadata, type LocationDirectory, locationTree, type FileData, cleanSlashesURL } from '.';
 import type { IncomingMessage, ServerResponse } from 'http';
 import type { Transform } from 'stream';
 import { type MaybePromise } from '../../functional';
@@ -111,12 +111,16 @@ export function dynamicFiles(fastify: FastifyInstance, options: DynamicFileOptio
                                         `## Index`,
                                     ];
                                     if(!currentLocation.isRoot) {
-                                        pageLinks.push(`- [..](${dirname})`);
+                                        pageLinks.push(`- <a class="md-link" href="${cleanSlashesURL(dirname)}">${dirname === "/" ? ".." : `../${path.basename(dirname)}`}</a>`);
                                     }
                                     for(const item of (currentLocation as LocationDirectory).content) {
                                         const ext = path.extname(item.path);
                                         if(ext !== ".livify") {
-                                            pageLinks.push(`- [${path.basename(item.path)}](${item.relativePath})`);
+                                            if(item.type === "directory") {
+                                                pageLinks.push(`- <a class="md-link" href="${item.relativePath}">${path.basename(item.path)}</a>`);
+                                            } else {
+                                                pageLinks.push(`- [${path.basename(item.path)}](${item.relativePath})`);
+                                            }
                                         }
                                     }
                                     return rep.code(200).type("text/html").send(await generateHTMLFromMarkdown(pageLinks.join("\r\n"), options.templateLocation, "Index", options.location, options));
