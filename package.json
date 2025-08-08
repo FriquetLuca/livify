@@ -1,6 +1,6 @@
 {
     "name": "livify",
-    "version": "1.0.7",
+    "version": "1.0.8",
     "main": "bin/index.js",
     "bin": {
         "livify": "bin/livify.js"
@@ -22,7 +22,7 @@
         "js-yaml": "^4.1.0",
         "jsdom": "^26.1.0",
         "katex": "^0.16.22",
-        "mkimp": "^3.0.0",
+        "mkimp": "^3.0.1",
         "zod": "^4.0.15"
     },
     "devDependencies": {
