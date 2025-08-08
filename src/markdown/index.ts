@@ -66,11 +66,11 @@ const parseMarkdown = async (content: string, options: ParseMarkdownOption = {})
         },
     });
     const rootToken = await mkimp.ast(content);
-    const htmlContent = mkimp.render(rootToken);
+    const htmlContent = await mkimp.render(rootToken);
     if(options.include) {
         let html = fs.readFileSync(options.include.templateLoc, { encoding: "utf-8" });
         for(const [key, value] of rootToken.metadata) {
-            html = html.replaceAll(`{{${key}}}`, value);
+            html = html.replaceAll(`{{${key}}}`, typeof value === "string" ? value : value.toString());
         }
         if(options.sanitize) {
             const window = new JSDOM('').window;
