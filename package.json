@@ -1,14 +1,12 @@
 {
     "name": "livify",
-    "version": "1.0.6",
+    "version": "1.0.7",
     "main": "bin/index.js",
     "bin": {
         "livify": "bin/livify.js"
     },
     "scripts": {
-        "build": "node buildCli.mjs",
-        "buildclient": "node buildClient.mjs",
-        "start": "node bin/livify.js"
+        "build": "(rm -rf bin) && node buildCli.mjs && node buildClient.mjs"
     },
     "dependencies": {
         "@fastify/cookie": "^11.0.2",
@@ -24,8 +22,8 @@
         "js-yaml": "^4.1.0",
         "jsdom": "^26.1.0",
         "katex": "^0.16.22",
-        "mkimp": "^2.0.0",
-        "zod": "^4.0.14"
+        "mkimp": "^3.0.0",
+        "zod": "^4.0.15"
     },
     "devDependencies": {
         "@types/js-yaml": "^4.0.9",
