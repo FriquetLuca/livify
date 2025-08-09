@@ -139,9 +139,12 @@ h6.md-heading {
 
 .md-tableofcontent {
     display: block;
-    padding-left: .5em;
     margin-top: .2rem;
     margin-bottom: .2rem;
+}
+
+.md-listitem .md-tableofcontent {
+    padding-left: 1em;
 }
 
 .md-ullist {
