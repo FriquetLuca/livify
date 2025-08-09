@@ -79,5 +79,3 @@ While this is a great way to have heading IDs, you may want to create your own f
 # My heading {#my-heading-id}
 
 > Note: This doesn't work with `setext-style heading`.
-
----
