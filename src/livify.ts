@@ -297,6 +297,13 @@ program
       prefix: '/_internal'
     });
     server.dynamicFiles({
+      location: path.join(__dirname, "../doc"),
+      templateLocation: path.join(__dirname, "../templates/default_template.html"),
+      emojis: JSON.parse(fs.readFileSync(path.join(__dirname, "../defaults/emojis.json"), 'utf-8')),
+      sanitize: false,
+      prefix: "/_internaldoc"
+    });
+    server.dynamicFiles({
       location,
       templateLocation: defaultTemplateLocation,
       emojis,

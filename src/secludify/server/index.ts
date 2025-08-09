@@ -5,13 +5,12 @@ import fastifySession from "@fastify/session";
 import { post } from "./post";
 import { send } from "./send";
 import { getKeys } from "../security";
-import { dynamicFiles, loadMetadata, staticFiles, type DynamicFileOption, type StaticFileOption } from './files';
+import { dynamicFiles, staticFiles, type DynamicFileOption, type StaticFileOption } from './files';
 import { keyExchange } from './keyExchange';
 import fastifyWebsocket from '@fastify/websocket';
 import { WebSocket } from 'ws';
 import chokidar from 'chokidar';
 import path from 'path';
-import { patchPrefix } from './files/patchPrefix';
 
 declare module "fastify" {
     interface Session {
