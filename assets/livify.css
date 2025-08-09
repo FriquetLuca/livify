@@ -1,11 +1,6 @@
-* {
-    -webkit-box-sizing: border-box;
-            box-sizing: border-box;
-    padding: 0;
-    margin: 0;
-}
-
 :root {
+    font-size: calc(.8rem + 0.25vw); // To test on mobile + 4K; original: font-size: calc(1rem + 0.25vw);
+    line-height: 1.6;
     --md-text-color: #000000;
     --md-border-color: #d1d9e0b3;
     --md-solid-border-color: #d1d9e0;
@@ -37,10 +32,35 @@
     }
 }
 
-body {
+* {
+    -webkit-box-sizing: border-box;
+            box-sizing: border-box;
+    padding: 0;
+    margin: 0;
+    scrollbar-color: var(--md-border-color) var(--md-bg-color);
+    scrollbar-width: thin;
+}
+
+::-webkit-scrollbar {
+    width: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--md-border-color); 
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--md-solid-border-color);
+}
+
+::-webkit-scrollbar-track {
+    border-radius: 5px;
+}
+
+html, body {
     color: var(--md-text-color);
     background-color: var(--md-bg-color);
-    min-height: 100vh;
 }
 
 .md-table-line-space {
@@ -50,7 +70,6 @@ body {
 .md-number-ln {
     -webkit-touch-callout: none;
     -webkit-user-select: none;
-    -khtml-user-select: none;
     -moz-user-select: none;
     -ms-user-select: none;
     user-select: none;
@@ -110,6 +129,13 @@ h6.md-heading {
     margin: 1.5rem;
     background-color: var(--md-solid-border-color);
     border: 0;
+}
+
+.md-tableofcontent {
+    display: block;
+    padding-left: .5em;
+    margin-top: .2rem;
+    margin-bottom: .2rem;
 }
 
 .md-ullist {
@@ -312,6 +338,11 @@ td.md-tablecell {
     -webkit-box-pack: center;
         -ms-flex-pack: center;
             justify-content: center;
+}
+
+.md-youtube iframe[width] {
+    width: min(100%, attr(width px));
+    max-width: 100%;
 }
 
 .md-footnotes {

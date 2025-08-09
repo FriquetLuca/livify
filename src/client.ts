@@ -21,11 +21,8 @@ function autorelog(url: string, tOut: Partial<TimeOut> = {}){
                 location.reload();
             }
         };
-        socket.onmessage = (msg) => {
-            const locations: string[] = JSON.parse(msg.data.toString());
-            if(locations.includes("*") || locations.includes(location.pathname)) {
-                location.reload();
-            }
+        socket.onmessage = (_) => {
+            location.reload();
         };
         socket.onclose = () => {
             reconnect = true;
