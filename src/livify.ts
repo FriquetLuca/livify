@@ -101,7 +101,7 @@ async function generateMarkdownFile(options: {
         return;
       }
       const content = await generateHTMLFromMarkdownFile(options.input, fileMeta.title ?? path.basename(options.input), options.root, {
-        location: '',
+        location: options.input,
         emojis: options.emojis,
         templateLocation: options.template,
         sanitize: options.sanitize,

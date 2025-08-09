@@ -7,6 +7,7 @@ import { JSDOM } from 'jsdom';
 import DOMPurify from 'dompurify';
 
 type IncludeOpt = {
+    fileLoc: string,
     baseDir: string,
     templateLoc: string,
 };
@@ -38,8 +39,11 @@ const parseMarkdown = async (content: string, options: ParseMarkdownOption = {})
         },
         async include(location, from, to) {
             if(options.include) {
-                const fullPath = path.resolve(options.include?.baseDir, location);
-                if(fs.existsSync(fullPath) && fs.statSync(fullPath).isFile()) {
+                const fullPath = location.startsWith("./")
+                    ? path.resolve(path.dirname(options.include?.fileLoc), location)
+                    : path.resolve(options.include?.baseDir, location);
+                const isRelative = path.relative(options.include?.baseDir, fullPath).replaceAll("\\", "/").startsWith("../")
+                if(!isRelative && fs.existsSync(fullPath) && fs.statSync(fullPath).isFile()) {
                     const fileContent = fs.readFileSync(fullPath, "utf-8");
                     if(from === undefined && to === undefined) {
                         return fileContent;
@@ -54,8 +58,11 @@ const parseMarkdown = async (content: string, options: ParseMarkdownOption = {})
         },
         async includeCode(location, from, to) {
             if(options.include) {
-                const fullPath = path.resolve(options.include?.baseDir, location);
-                if(fs.existsSync(fullPath) && fs.statSync(fullPath).isFile()) {
+                const fullPath = location.startsWith("./")
+                    ? path.resolve(path.dirname(options.include?.fileLoc), location)
+                    : path.resolve(options.include?.baseDir, location);
+                const isRelative = path.relative(options.include?.baseDir, fullPath).replaceAll("\\", "/").startsWith("../")
+                if(!isRelative && fs.existsSync(fullPath) && fs.statSync(fullPath).isFile()) {
                     const fileContent = fs.readFileSync(fullPath, "utf-8");
                     if(from === undefined && to === undefined) {
                         return fileContent;
@@ -94,6 +101,7 @@ const parseMarkdown = async (content: string, options: ParseMarkdownOption = {})
 export async function generateHTMLFromMarkdown(mdContent: string, template: string, _title: string, location: string, options: DynamicFileOption) {
     return await parseMarkdown(mdContent, {
         include: {
+            fileLoc: options.location,
             baseDir: location,
             templateLoc: template,
         },

@@ -61,6 +61,8 @@
 html, body {
     color: var(--md-text-color);
     background-color: var(--md-bg-color);
+    height: 100%;
+    overflow: hidden;
 }
 
 .md-table-line-space {
@@ -87,6 +89,10 @@ html, body {
 }
 
 .content {
+    display: block;
+    overflow: auto;
+    height: 100vh;
+    height:100svh;
     padding: 1em;
 }
 

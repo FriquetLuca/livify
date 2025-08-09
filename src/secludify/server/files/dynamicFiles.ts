@@ -3,7 +3,7 @@ import fs from 'fs';
 import type { FastifyInstance } from 'fastify';
 import { patchPrefix } from './patchPrefix';
 import { CONTENT_TYPE, type ContentTypeExtension } from '../../http';
-import { loadMetadata, type LocationDirectory, locationTree, type FileData, cleanSlashesURL } from '.';
+import { loadMetadata, type LocationDirectory, locationTree, type FileData } from '.';
 import type { IncomingMessage, ServerResponse } from 'http';
 import type { Transform } from 'stream';
 import { type MaybePromise } from '../../functional';
@@ -60,7 +60,7 @@ export function dynamicFiles(fastify: FastifyInstance, options: DynamicFileOptio
                         return rep.code(200).type(currentFile.contentType).send(await options.fileHandler(currentFile, options));
                     }
                     if(path.extname(currentFile.location) === ".md") {
-                        return rep.code(200).type("text/html").send(await generateHTMLFromMarkdownFile(file.location, fileMeta.title ?? path.basename(currentFile.location), options.location, options));
+                        return rep.code(200).type("text/html").send(await generateHTMLFromMarkdownFile(file.location, fileMeta.title ?? path.basename(currentFile.location), options.location, { ...options, location: file.location }));
                     }
                     return rep.code(200).type(currentFile.contentType).send(fs.createReadStream(currentFile.location));
                 } else if (stats.isDirectory()) {
@@ -89,7 +89,7 @@ export function dynamicFiles(fastify: FastifyInstance, options: DynamicFileOptio
                                 rep.header('Content-Disposition', fileMeta.file.disposition);
                             }
                         }
-                        return rep.code(200).type("text/html").send(await generateHTMLFromMarkdownFile(possibleIndexMD, fileMeta.title ?? "Index", options.location, options));
+                        return rep.code(200).type("text/html").send(await generateHTMLFromMarkdownFile(possibleIndexMD, fileMeta.title ?? "Index", options.location, { ...options, location: possibleIndexMD, }));
                     } else {
                         if(directoryMeta.indexed ?? !(options.disableDefaultIndexing ?? false)) {
                             if(options.overrideIndexGeneration) {

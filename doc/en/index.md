@@ -1,15 +1,4 @@
 <style>
-html, body {
-    height: 100%;
-    overflow: hidden;
-}
-.content {
-    display: block;
-    overflow: auto;
-    height: 100vh;
-    height:100svh;
-}
-
 .layout-heading-top {
     display: block;
 }
@@ -78,7 +67,7 @@ html, body {
 # MkImp Markdown
 </div>
 
-!include "structure.md"
-!include "syntax.md"
+!include "./structure.md"
+!include "./syntax.md"
 </div>
 </div>

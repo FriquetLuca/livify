@@ -78,7 +78,7 @@ html, body {
 # MkImp Markdown
 </div>
 
-!include "structure.md"
-!include "syntax.md"
+!include "./structure.md"
+!include "./syntax.md"
 </div>
 </div>
