@@ -39,28 +39,32 @@ const parseMarkdown = async (content: string, options: ParseMarkdownOption = {})
         async include(location, from, to) {
             if(options.include) {
                 const fullPath = path.resolve(options.include?.baseDir, location);
-                const fileContent = fs.readFileSync(fullPath, "utf-8");
-                if(from === undefined && to === undefined) {
-                    return fileContent;
+                if(fs.existsSync(fullPath) && fs.statSync(fullPath).isFile()) {
+                    const fileContent = fs.readFileSync(fullPath, "utf-8");
+                    if(from === undefined && to === undefined) {
+                        return fileContent;
+                    }
+                    const filelines = fileContent.split(/\r?\n/);
+                    const newFrom = from ? from - 1 : 0;
+                    const newTo = to ? to : filelines.length - 1;
+                    return filelines.slice(newFrom, newTo).join('\n');
                 }
-                const filelines = fileContent.split(/\r?\n/);
-                const newFrom = Math.max(0, Math.min(from ? from - 1 : 0, filelines.length - 1));
-                const newTo = Math.max(0, Math.min(to ? to - 1 : filelines.length - 1, filelines.length - 1));
-                return filelines.slice(newFrom, newTo).join('\n');
             }
             return undefined;
         },
         async includeCode(location, from, to) {
             if(options.include) {
                 const fullPath = path.resolve(options.include?.baseDir, location);
-                const fileContent = fs.readFileSync(fullPath, "utf-8");
-                if(from === undefined && to === undefined) {
-                    return fileContent;
+                if(fs.existsSync(fullPath) && fs.statSync(fullPath).isFile()) {
+                    const fileContent = fs.readFileSync(fullPath, "utf-8");
+                    if(from === undefined && to === undefined) {
+                        return fileContent;
+                    }
+                    const filelines = fileContent.split(/\r?\n/);
+                    const newFrom = from ? from - 1 : 0;
+                    const newTo = to ? to : filelines.length - 1;
+                    return filelines.slice(newFrom, newTo).join('\n');
                 }
-                const filelines = fileContent.split(/\r?\n/);
-                const newFrom = Math.max(0, Math.min(from ? from - 1 : 0, filelines.length - 1));
-                const newTo = Math.max(0, Math.min(to ? to - 1 : filelines.length - 1, filelines.length - 1));
-                return filelines.slice(newFrom, newTo).join('\n');
             }
             return undefined;
         },
