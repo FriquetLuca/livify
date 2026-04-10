@@ -17,6 +17,7 @@ export const getKeys = (keypath: string) => {
             };
         }
         fs.rmSync(keyPath);
+        fs.rmSync(`${keyPath}.livify`);
     }
 
     // Generate RSA key pair otherwise
@@ -40,7 +41,8 @@ export const getKeys = (keypath: string) => {
         secret,
     };
 
-    fs.writeFileSync(keyPath, JSON.stringify(keys))
+    fs.writeFileSync(keyPath, JSON.stringify(keys));
+    fs.writeFileSync(`${keyPath}.livify`, JSON.stringify({ hidden: true, }));
 
     return keys;
 };

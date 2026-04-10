@@ -18,7 +18,6 @@ export type DynamicFileOption = {
     allowLatex?: boolean,
     emojis?: Record<string, EmojiRecord>,
     prefix?: string,
-    metaext?: string,
     sanitize?: boolean,
     disableDefaultIndexing?: boolean,
     locationHandler?: (file: FileData, options: DynamicFileOption) => FileData,
@@ -31,8 +30,8 @@ export function dynamicFiles(fastify: FastifyInstance, options: DynamicFileOptio
         const prefix = patchPrefix(options.prefix ?? "");
         fastify.get(`${prefix}*`, async (req, rep) => {
             const requestUrl = req.originalUrl.substring(prefix.length - 1, req.originalUrl.length);
-            const ext = path.extname(requestUrl) as ContentTypeExtension;
-            if(ext === (options.metaext ?? ".livify")) {
+            const ext = path.extname(requestUrl) as ContentTypeExtension | ".livify";
+            if(ext === ".livify") {
                 return rep.code(404).send({ message: `Route GET:${req.originalUrl} not found`, error: "Not Found" });
             }
             const file = {
@@ -41,7 +40,7 @@ export function dynamicFiles(fastify: FastifyInstance, options: DynamicFileOptio
                 route: requestUrl,
             };
             const currentFile: FileData = (options.locationHandler && options.locationHandler(file, options)) ?? file;
-            const unknownMetas = loadMetadata<{ hidden: boolean }>(currentFile.location, { hidden: false, }, options.metaext);
+            const unknownMetas = loadMetadata<{ hidden: boolean }>(currentFile.location, { hidden: false, });
             if(unknownMetas.hidden) {
                 return rep.code(404).send({ message: `Route GET:${req.originalUrl} not found`, error: "Not Found" });
             }
@@ -71,7 +70,7 @@ export function dynamicFiles(fastify: FastifyInstance, options: DynamicFileOptio
                     const possibleIndexHTML = path.join(currentFile.location, "index.html");
                     const possibleIndexMD = path.join(currentFile.location, "index.md");
                     if(fs.existsSync(possibleIndexHTML)) {
-                        const fileMeta = loadMetadata<LocationFileMeta>(possibleIndexMD, { hidden: false, }, options.metaext);
+                        const fileMeta = loadMetadata<LocationFileMeta>(possibleIndexMD, { hidden: false, });
                         if(fileMeta.file?.disposition) {
                             if(fileMeta.file.disposition === "attachment" && fileMeta.file.filename) {
                                 rep.header('Content-Disposition', `attachment; filename="${fileMeta.file.filename}"`);
@@ -81,7 +80,7 @@ export function dynamicFiles(fastify: FastifyInstance, options: DynamicFileOptio
                         }
                         return rep.code(200).type("text/html").send(fs.createReadStream(possibleIndexHTML));
                     } else if(fs.existsSync(possibleIndexMD)) {
-                        const fileMeta = loadMetadata<LocationFileMeta>(possibleIndexMD, { hidden: false, }, options.metaext);
+                        const fileMeta = loadMetadata<LocationFileMeta>(possibleIndexMD, { hidden: false, });
                         if(fileMeta.file?.disposition) {
                             if(fileMeta.file.disposition === "attachment" && fileMeta.file.filename) {
                                 rep.header('Content-Disposition', `attachment; filename="${fileMeta.file.filename}"`);

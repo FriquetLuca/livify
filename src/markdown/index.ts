@@ -1,10 +1,12 @@
-import { MkImp, type EmojiRecord } from 'mkimp';
+import { MkImp, registerToHLJS, type EmojiRecord } from 'mkimp';
 import fs from 'fs';
 import { type DynamicFileOption } from '../secludify/server/files/dynamicFiles';
 import jsyaml from 'js-yaml';
 import path from 'path';
 import { JSDOM } from 'jsdom';
 import DOMPurify from 'dompurify';
+import hljs from 'highlight.js';
+import KaTeX from 'katex';
 
 type IncludeOpt = {
     fileLoc: string,
@@ -74,6 +76,26 @@ const parseMarkdown = async (content: string, options: ParseMarkdownOption = {})
                 }
             }
             return undefined;
+        },
+        useLatex: true,
+        async latex(token) {
+            const rendered = KaTeX.renderToString(token.text, {
+                strict: false,
+                throwOnError: false,
+                output: 'htmlAndMathml',
+                displayMode: token.displayMode,
+            });
+            if (token.inline) {
+                const style = token.displayMode
+                ? ` style="display: inline-block;"`
+                : '';
+                return `<span${style}>${rendered}</span>`;
+            }
+            return rendered;
+        },
+        useHLJS: true,
+        async highlighter() {
+            return await registerToHLJS(hljs);
         },
     });
     const rootToken = await mkimp.ast(content);

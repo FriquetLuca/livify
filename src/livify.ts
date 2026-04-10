@@ -81,7 +81,7 @@ async function generateMarkdownFile(options: {
   input: string;
   full: boolean;
 }) {
-  const unknownMetas = loadMetadata<{ hidden: boolean }>(options.input, { hidden: false, }, ".livify");
+  const unknownMetas = loadMetadata<{ hidden: boolean }>(options.input, { hidden: false, });
   const currentInputStats = fs.statSync(options.input);
   const isInputFile = currentInputStats.isFile() ? true : currentInputStats.isDirectory() ? false : null;
   const isDirectTarget = path.extname(options.output) === ".html";
@@ -227,7 +227,7 @@ program
       if(fs.statSync(output).isFile()) {
         fs.rmSync(output);
       } else {
-        fs.rmdirSync(output, { recursive: true });
+        fs.rmSync(output, { recursive: true });
       }
     }
 
