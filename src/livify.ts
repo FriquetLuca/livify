@@ -1,44 +1,16 @@
 #!/usr/bin/env node
 import { Command } from 'commander';
 import {
-  loadMetadata,
-  type LocationDirectory,
-  locationTree,
   secludify
 } from "./secludify";
 import { z } from "zod";
 import fs from "fs";
 import path from "path";
-import os from 'os';
-import { generateHTMLFromMarkdown, generateHTMLFromMarkdownFile } from './markdown';
-import { findLocationInTreeRoute } from './secludify/server/files/findRelativeInTree';
-import { sortLocationTree } from './secludify/server/files/sortLocationTree';
 import { type EmojiRecord } from 'mkimp';
-
-const interfaces = os.networkInterfaces();
-
-const IPv4 = (): string[] => {
-  const result = [];
-  for (const k in interfaces) {
-      for (const k2 in interfaces[k]) {
-          const intr = interfaces[k];
-          if(intr) {
-              const address: os.NetworkInterfaceInfo = intr[Number(k2)];
-              if(address && (address.family === 'IPv4')) {
-                  result.push(address.address);
-              }
-          }
-      }
-  }
-  return result;
-};
-
-const directoryAllContent = (p: string, a: string[] = []) => {
-  if(fs.statSync(p).isDirectory()) {
-      fs.readdirSync(p).map((f: string) => directoryAllContent(a[a.push(path.join(p, f)) - 1], a));
-  }
-  return a;
-}
+import { removeExt } from './utils/removeExt';
+import { generateMarkdownFile } from './markdown/buildFiles';
+import { directoryAllContent } from './secludify/fs';
+import { getIP } from './utils/getIP';
 
 const seekPath = (p: string) => {
   if(p === ".") {
@@ -51,108 +23,6 @@ const rowCurrentPackage = fs.readFileSync(path.join(__dirname, "../package.json"
 const currentPackage = JSON.parse(rowCurrentPackage) as { name: string; version: string; };
 const program = new Command();
 program.name(currentPackage.name).description('A CLI tool for static website using MkImp.').version(currentPackage.version);
-
-type LocationFileMeta = Partial<{
-  title: string,
-  hidden: boolean,
-}>;
-
-type LocationDirectoryMeta = Partial<{
-    title: string,
-    indexed: boolean,
-    hidden: boolean,
-    unlinkIndex: boolean,
-}>;
-
-function removeExt(input: string) {
-  const extname = path.extname(input);
-  return input.substring(0, input.length - extname.length);
-}
-
-
-async function generateMarkdownFile(options: {
-  sanitize: boolean;
-  root: string;
-  disableIndexing: boolean;
-  override: boolean;
-  emojis: Record<string, EmojiRecord>;
-  template: string;
-  output: string;
-  input: string;
-  full: boolean;
-}) {
-  const unknownMetas = loadMetadata<{ hidden: boolean }>(options.input, { hidden: false, });
-  const currentInputStats = fs.statSync(options.input);
-  const isInputFile = currentInputStats.isFile() ? true : currentInputStats.isDirectory() ? false : null;
-  const isDirectTarget = path.extname(options.output) === ".html";
-  if(isInputFile) {
-      const inputExt = path.extname(options.input);
-      if(inputExt === ".livify") {
-        return;
-      }
-      else if(inputExt !== ".md") {
-        const out = path.join(options.output, path.relative(options.root, options.input));
-        fs.mkdirSync(path.dirname(out), { recursive: true });
-        fs.copyFileSync(options.input, out);
-        return;
-      }
-      const fileMeta: LocationFileMeta = unknownMetas;
-      if(fileMeta.hidden === true) {
-        return;
-      }
-      const content = await generateHTMLFromMarkdownFile(options.input, fileMeta.title ?? path.basename(options.input), options.root, {
-        location: options.input,
-        emojis: options.emojis,
-        templateLocation: options.template,
-        sanitize: options.sanitize,
-      });
-      const out = `${path.join(options.output, path.relative(options.root, removeExt(options.input)))}.html`;
-      fs.mkdirSync(path.dirname(out), { recursive: true });
-      fs.writeFileSync(out, content, "utf-8");
-  } else {
-    const directoryMeta: LocationDirectoryMeta = unknownMetas;
-    if(directoryMeta.hidden === true && !isDirectTarget) {
-      return;
-    }
-    if(directoryMeta.unlinkIndex !== true || isDirectTarget) {
-      const possibleIndexMD = path.join(options.input, "index.md");
-      if(!fs.existsSync(possibleIndexMD)) {
-          if((directoryMeta.indexed ?? !options.disableIndexing) || isDirectTarget) {
-              // Create an index for the directory since it's indexed
-              const tree = locationTree(options.input);
-              if(tree) {
-                  const currentLoc = findLocationInTreeRoute(options.input, tree);
-                  if(currentLoc) {
-                      const currentLocation = sortLocationTree(currentLoc);
-                      const indexContent = `# ${currentLocation.name}\r\n\r\n## Index\r\n\r\n`;
-                      const dirname = path.dirname(options.input);
-                      const pageLinks: string[] = [];
-                      if(!currentLocation.isRoot) {
-                          pageLinks.push(`- <a href="${dirname}">..</a>`);
-                      }
-                      for(const item of (currentLocation as LocationDirectory).content) {
-                          pageLinks.push(`- <a href="${item.relativePath}">${path.basename(item.path)}</a>`);
-                      }
-                      const content = await generateHTMLFromMarkdown(`${indexContent}${pageLinks.join("\r\n")}`, options.template, "Index", options.root, {
-                        location: '',
-                        emojis: options.emojis,
-                        templateLocation: options.template,
-                        sanitize: options.sanitize,
-                      });
-                      const out = path.join(options.output, path.relative(options.root, options.input), "index.html");
-                      fs.mkdirSync(path.dirname(out), { recursive: true });
-                      fs.writeFileSync(out, content, "utf-8");
-                  }
-              } else {
-                throw new Error("Could not generate the location tree");
-              }
-          } else {
-              throw new Error("Directory not found");
-          }
-      }
-    }
-  }
-}
 
 program
   .command('build')
@@ -268,7 +138,7 @@ program
     });
     const options = serveSchema.parse(rawOptions);
     if(!options.host) {
-      console.log("Potential hosts:", IPv4().map((h) => `http://${h}:${options.port}`).join(", "));
+      console.log("Potential hosts:", getIP('IPv4').map((h) => `http://${h}:${options.port}`).join(", "));
     }
     const location = seekPath(arg);
     if(!fs.existsSync(location)) {

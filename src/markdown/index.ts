@@ -8,11 +8,11 @@ import DOMPurify from 'dompurify';
 import hljs from 'highlight.js';
 import KaTeX from 'katex';
 
-type IncludeOpt = {
+interface IncludeOpt {
     fileLoc: string,
     baseDir: string,
     templateLoc: string,
-};
+}
 
 export type ParseMarkdownOption = Partial<{
     include: IncludeOpt,

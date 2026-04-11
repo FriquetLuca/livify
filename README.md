@@ -144,6 +144,50 @@ livify build ./examples -o ./dist
 livify build ./examples -o ./dist -r ./examples
 ```
 
+## Access File
+
+Livify use metadata files with the extension `.livify` to handle access to any files.
+The access files are written in `JSON` and will help you handle some problems later on.
+You can write an access file for a directory or a file, all you need to do is to write down the name followed by the extension:
+```bash
+/some/folder/ # Directory to protect
+/some/folder.livify # Access file
+/some/file.txt # File to protect
+/some/file.txt.livify # Access file
+```
+
+Note: An access file that hide a directory will also hide recursively all it's content.
+
+Access files aren't just to hide folder or directories but may also provide some useful datas. All fields of access files are optionals.
+Here's what's currently supported:
+
+### Directory
+
+```js
+{
+  title: string; // Title to write for an indexed directory (default: the directory name)
+  indexed: boolean; // Specify if an index should be generated if none are found (default: true)
+  hidden: boolean; // The directory is hidden, return a 404 if trying to reach it or anything it may contain. (default: false)
+}
+```
+
+### File
+
+```js
+{
+  title: string; // Title to write for an indexed directory (default: the file name)
+  file: {
+    disposition: "attachment"|"inline"; // Disposition of the file (default: undefined)
+    filename: string; // Name of the file (default: undefined)
+  },
+  hidden: boolean; // The file is hidden, return a 404 if trying to reach it. (default: false)
+  throttle: number; // The speed at which you can download the file (default: undefined)
+  reqLimit: number; // The number of request you can execute to get a specific file (default: undefined)
+  reqWindowLimit: number; // The amount of time before the request limit is reinitialized in `ms` (default: 60000)
+}
+```
+
+
 ## Features
 
 - ✅ Live preview server for Markdown

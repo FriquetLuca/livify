@@ -4,14 +4,13 @@
         "module": "commonjs",
         "rootDir": "./src",
         "outDir": "./bin",
-        "baseUrl": ".",
         "esModuleInterop": true,
         "sourceMap": true,
         "strict": true,
         "forceConsistentCasingInFileNames": true,
         "resolveJsonModule": true,
         "skipLibCheck": true,
-        "moduleResolution": "node"
+        "moduleResolution": "bundler"
     },
     "include": ["src/**/*.ts"],
     "exclude": ["node_modules", "bin", "defaults", "assets", "examples", "templates"]
