@@ -10,6 +10,9 @@ export type LocationFileMeta = Partial<{
     title: string,
     file: LocationMetaFileAttachment,
     hidden: boolean,
+    throttle: number,
+    reqLimit: number,
+    reqWindowLimit: number,
 }>;
 
 export type LocationDirectoryMeta = Partial<{
