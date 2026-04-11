@@ -2,34 +2,33 @@ import path from "path";
 import fs from "fs";
 import { CONTENT_TYPE, ContentType } from "../../http";
 
-export type LocationStats = {
-    lastAccess: number,
-    modifiedAt: number,
-    lastStatusChanged: number,
-    createdAt: number,
-};
+export interface LocationStats {
+    lastAccess: number;
+    modifiedAt: number;
+    lastStatusChanged: number;
+    createdAt: number;
+}
 
-export type LocationItem<T extends ContentType> = {
-    name: string,
-    path: string,
-    relativePath: string,
-    contentType: T,
-    isRoot: boolean,
-    stats: LocationStats,
-};
+export interface LocationItem<T extends ContentType> {
+    name: string;
+    path: string;
+    relativePath: string;
+    contentType: T;
+    isRoot: boolean;
+    stats: LocationStats;
+    hasMeta: boolean;
+}
 
-export type LocationFile = LocationItem<ContentType> & {
-    type: "file",
-    extension: string,
-    hasMeta: boolean,
-    meta?: string,
-};
+export interface LocationFile extends LocationItem<ContentType> {
+    type: "file";
+    extension: string;
+}
 
-export type LocationDirectory = LocationItem<"text/html"> & {
-    type: "directory",
-    hasIndex: boolean,
-    content: LocationElement[],
-};
+export interface LocationDirectory extends LocationItem<"text/html"> {
+    type: "directory";
+    hasIndex: boolean;
+    content: LocationElement[];
+}
 
 export type LocationElement = LocationFile|LocationDirectory;
 
@@ -88,6 +87,8 @@ export function locationTree(location: string, opts: LocationTreeOptions = { }):
           content.push(loc);
         }
       }
+      const metaPath = `${location}.livify`;
+      const hasMeta = fs.existsSync(metaPath);
       return {
         type: "directory",
         contentType: "text/html",
@@ -102,19 +103,18 @@ export function locationTree(location: string, opts: LocationTreeOptions = { }):
           modifiedAt: pathStats.mtimeMs,
           lastStatusChanged: pathStats.ctimeMs,
           createdAt: pathStats.birthtimeMs,
-        }
+        },
+        hasMeta,
       };
     } else if(pathStats.isFile()) {
       const extension = path.extname(location);
       const fileName = path.basename(location);
       const name = fileName.substring(0, fileName.length - extension.length);
-      const isMeta = extension === ".meta";
+      const isMeta = extension === ".livify";
       if(isMeta) {
-        if(path.extname(name).length > 0) {
-          return undefined;
-        }
+        return undefined;
       }
-      const metaPath = path.join(path.dirname(location), `${name}${extension}.meta`);
+      const metaPath = path.join(path.dirname(location), `${name}${extension}.livify`);
       const hasMeta = fs.existsSync(metaPath);
       return {
         type: "file",

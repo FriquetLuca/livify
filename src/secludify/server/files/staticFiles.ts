@@ -4,17 +4,16 @@ import path from "path";
 import { CONTENT_TYPE, type ContentTypeExtension } from "../../http";
 import { directoryAllFiles } from "../../fs";
 import { patchPrefix } from "./patchPrefix";
-import { loadMetadata, type FileData } from ".";
-import { acceptRanges } from "./acceptRanges";
-import type { LocationFileMeta } from "./loadMetadata";
+import { type FileData } from ".";
+import { loadMetadata, type LocationFileMeta } from "./loadMetadata";
 import { sendFile } from "./sendFile";
 
-export type StaticFileOption = {
-    location: string,
-    prefix?: string,
-    locationHandler?: (file: FileData) => FileData | FileData[],
-    fileHandler?: (file: FileData, req: FastifyRequest, rep: FastifyReply) => FastifyReply,
-};
+export interface StaticFileOption {
+    location: string;
+    prefix?: string;
+    locationHandler?: (file: FileData) => FileData | FileData[];
+    fileHandler?: (file: FileData, req: FastifyRequest, rep: FastifyReply) => FastifyReply;
+}
 
 export function staticFiles(fastify: FastifyInstance, options: StaticFileOption) {
     if(fs.existsSync(options.location)) {
@@ -51,6 +50,6 @@ export function createStaticFileRoute(fastify: FastifyInstance, file: FileData, 
         if (options.fileHandler) {
             return options.fileHandler(file, req, rep);
         }
-        return sendFile(file, fileMeta, stats.size, req, rep);
+        return sendFile(options.location, file, fileMeta, stats.size, req, rep);
     });
 }

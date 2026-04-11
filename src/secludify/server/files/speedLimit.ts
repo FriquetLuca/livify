@@ -1,6 +1,6 @@
 import { Transform } from "stream";
 
-export function throttle(bytesPerSecond: number) {
+export function speedLimit(bytesPerSecond: number) {
     let bytes = 0;
     let start = Date.now();
 

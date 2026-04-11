@@ -97,7 +97,7 @@ async function generateMarkdownFile(options: {
         return;
       }
       const fileMeta: LocationFileMeta = unknownMetas;
-      if(fileMeta.hidden === true && !isDirectTarget) {
+      if(fileMeta.hidden === true) {
         return;
       }
       const content = await generateHTMLFromMarkdownFile(options.input, fileMeta.title ?? path.basename(options.input), options.root, {
@@ -106,14 +106,9 @@ async function generateMarkdownFile(options: {
         templateLocation: options.template,
         sanitize: options.sanitize,
       });
-      if(isDirectTarget) {
-        fs.mkdirSync(path.dirname(options.output), { recursive: true });
-        fs.writeFileSync(options.output, content, "utf-8");
-      } else {
-        const out = `${path.join(options.output, path.relative(options.root, removeExt(options.input)))}.html`;
-        fs.mkdirSync(path.dirname(out), { recursive: true });
-        fs.writeFileSync(out, content, "utf-8");
-      }
+      const out = `${path.join(options.output, path.relative(options.root, removeExt(options.input)))}.html`;
+      fs.mkdirSync(path.dirname(out), { recursive: true });
+      fs.writeFileSync(out, content, "utf-8");
   } else {
     const directoryMeta: LocationDirectoryMeta = unknownMetas;
     if(directoryMeta.hidden === true && !isDirectTarget) {
@@ -285,7 +280,7 @@ program
     }
     const emojiPath = options.emojis ? seekPath(options.emojis) : path.join(__dirname, "../defaults/emojis.json");
     const emojis = JSON.parse(fs.readFileSync(emojiPath, 'utf-8')) as Record<string, EmojiRecord>;
-    const server = await secludify();
+    const server = await secludify({});
     if(options.hot) {
       server.socketLiveWatch({
         location,

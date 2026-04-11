@@ -14,19 +14,19 @@ import path from 'path';
 
 declare module "fastify" {
     interface Session {
-        aesKey: string,
+        aesKey: string;
     }
 }
 
-type CommonRequest<Params = {}, Querystring = {}> = {
-    params: Params,
-    query: Querystring,
-    reply: (code: number, data: unknown) => ReturnType<typeof send>,
-};
+interface CommonRequest<Params = {}, Querystring = {}> {
+    params: Params;
+    query: Querystring;
+    reply: (code: number, data: unknown) => ReturnType<typeof send>;
+}
 
-type SessionRequest = {
-    session: Session,
-};
+interface SessionRequest {
+    session: Session;
+}
 
 export type GetRequest<Params = {}, Querystring = {}> = CommonRequest<Params, Querystring>;
 export type HeadRequest<Params = {}, Querystring = {}> = CommonRequest<Params, Querystring>;
@@ -38,15 +38,21 @@ export type PatchRequest<Body = {}, Params = {}> = { params: Params, reply: (cod
 export type SecureGetRequest<Params = {}, Querystring = {}> = GetRequest<Params, Querystring> & SessionRequest;
 export type SecurePostRequest<Body = {}, Params = {}, Querystring = {}> = PostRequest<Body, Params, Querystring> & SessionRequest;
 
-export async function secludify() {
+export interface SecludifyOption {
+    keypath?: string;
+}
+
+export async function secludify({
+    keypath = 'keys.json',
+}: SecludifyOption) {
     // Generate RSA key pair at startup
-    const { publicKey, privateKey, secret } = getKeys('keys.json');
+    const { publicKey, privateKey, secret } = getKeys(keypath);
 
     const fastify = Fastify();
 
     await fastify.register(fastifyCookie);
     await fastify.register(fastifySession, {
-        secret, // Change this to a secure key
+        secret,
         cookie: {
             secure: false, // Set to true in production with HTTPS
             httpOnly: true,
