@@ -1,6 +1,6 @@
 import path from 'path';
 import fs from 'fs';
-import type { FastifyInstance } from 'fastify';
+import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import { patchPrefix } from './patchPrefix';
 import { CONTENT_TYPE, type ContentTypeExtension } from '../../http';
 import { loadMetadata, type LocationDirectory, locationTree, type FileData } from '.';
@@ -11,6 +11,8 @@ import { generateHTMLFromMarkdown, generateHTMLFromMarkdownFile } from '../../..
 import { findLocationInTreeRoute } from './findRelativeInTree';
 import { sortLocationTree } from './sortLocationTree';
 import { type EmojiRecord } from 'mkimp';
+import type { LocationDirectoryMeta, LocationFileMeta } from './loadMetadata';
+import { sendFile } from './sendFile';
 
 export type DynamicFileOption = {
     location: string,
@@ -21,7 +23,7 @@ export type DynamicFileOption = {
     sanitize?: boolean,
     disableDefaultIndexing?: boolean,
     locationHandler?: (file: FileData, options: DynamicFileOption) => FileData,
-    fileHandler?: (file: FileData, options: DynamicFileOption) => MaybePromise<fs.ReadStream | ServerResponse<IncomingMessage> | Transform | string | Buffer>,
+    fileHandler?: (file: FileData, options: DynamicFileOption, req: FastifyRequest, rep: FastifyReply) => MaybePromise<FastifyReply>,
     overrideIndexGeneration?: (file: FileData, options: DynamicFileOption) => MaybePromise<fs.ReadStream | ServerResponse<IncomingMessage> | Transform | string | Buffer>,
 };
 
@@ -48,20 +50,20 @@ export function dynamicFiles(fastify: FastifyInstance, options: DynamicFileOptio
                 const stats = fs.statSync(currentFile.location);
                 if(stats.isFile()) {
                     const fileMeta: LocationFileMeta = unknownMetas;
-                    if(fileMeta.file?.disposition) {
-                        if(fileMeta.file.disposition === "attachment" && fileMeta.file.filename) {
-                            rep.header('Content-Disposition', `attachment; filename="${fileMeta.file.filename}"`);
-                        } else {
-                            rep.header('Content-Disposition', fileMeta.file.disposition);
-                        }
-                    }
                     if(options.fileHandler) {
-                        return rep.code(200).type(currentFile.contentType).send(await options.fileHandler(currentFile, options));
+                        return await options.fileHandler(currentFile, options, req, rep);
                     }
                     if(path.extname(currentFile.location) === ".md") {
+                        if(fileMeta.file?.disposition) {
+                            if(fileMeta.file.disposition === "attachment" && fileMeta.file.filename) {
+                                rep.header('Content-Disposition', `attachment; filename="${fileMeta.file.filename}"`);
+                            } else {
+                                rep.header('Content-Disposition', fileMeta.file.disposition);
+                            }
+                        }
                         return rep.code(200).type("text/html").send(await generateHTMLFromMarkdownFile(file.location, fileMeta.title ?? path.basename(currentFile.location), options.location, { ...options, location: file.location }));
                     }
-                    return rep.code(200).type(currentFile.contentType).send(fs.createReadStream(currentFile.location));
+                    return sendFile(currentFile, fileMeta, stats.size, req, rep);
                 } else if (stats.isDirectory()) {
                     const directoryMeta: LocationDirectoryMeta = unknownMetas;
                     if(directoryMeta.unlinkIndex === true) {
@@ -127,30 +129,10 @@ export function dynamicFiles(fastify: FastifyInstance, options: DynamicFileOptio
                             }
                             return rep.code(500).send({ message: `Error 500 - Internal Server Error`, error: "Internal Server Error" });
                         }
-                        return rep.code(404).send({ message: `Route GET:${req.originalUrl} not found`, error: "Not Found" });
                     }
-                } else {
-                    return rep.code(404).send({ message: `Route GET:${req.originalUrl} not found`, error: "Not Found" });
                 }
-            } else {
-                return rep.code(404).send({ message: `Route GET:${req.originalUrl} not found`, error: "Not Found" });
             }
+            return rep.code(404).send({ message: `Route GET:${req.originalUrl} not found`, error: "Not Found" });
         })
     }
 }
-
-type LocationMetaFileAttachment = Partial<{
-    disposition: "attachment"|"inline",
-    filename: string,
-}>;
-type LocationFileMeta = Partial<{
-    title: string,
-    file: LocationMetaFileAttachment,
-    hidden: boolean,
-}>;
-type LocationDirectoryMeta = Partial<{
-    title: string,
-    indexed: boolean,
-    hidden: boolean,
-    unlinkIndex: boolean,
-}>;

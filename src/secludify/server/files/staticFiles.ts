@@ -1,17 +1,19 @@
-import type { FastifyInstance } from "fastify";
+import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import fs from "fs";
 import path from "path";
 import { CONTENT_TYPE, type ContentTypeExtension } from "../../http";
 import { directoryAllFiles } from "../../fs";
 import { patchPrefix } from "./patchPrefix";
-import { type FileData } from ".";
-import type { IncomingMessage, ServerResponse } from 'http';
+import { loadMetadata, type FileData } from ".";
+import { acceptRanges } from "./acceptRanges";
+import type { LocationFileMeta } from "./loadMetadata";
+import { sendFile } from "./sendFile";
 
 export type StaticFileOption = {
     location: string,
     prefix?: string,
     locationHandler?: (file: FileData) => FileData | FileData[],
-    fileHandler?: (file: FileData) => fs.ReadStream | ServerResponse<IncomingMessage> | string | Buffer,
+    fileHandler?: (file: FileData, req: FastifyRequest, rep: FastifyReply) => FastifyReply,
 };
 
 export function staticFiles(fastify: FastifyInstance, options: StaticFileOption) {
@@ -36,22 +38,19 @@ export function staticFiles(fastify: FastifyInstance, options: StaticFileOption)
 }
 
 export function createStaticFileRoute(fastify: FastifyInstance, file: FileData, options: StaticFileOption) {
-    if(file.skip) {
-        return;
-    }
-    if(fs.existsSync(file.location) && fs.statSync(file.location).isFile()) {
-        fastify.get(file.route, async (_, rep) => {
-            if(file.disposition) {
-                if(file.disposition === "attachment" && file.filename) {
-                    rep.header('Content-Disposition', `attachment; filename="${file.filename}"`);
-                } else {
-                    rep.header('Content-Disposition', file.disposition);
-                }
-            }
-            if(options.fileHandler) {
-                return rep.code(200).type(file.contentType).send(options.fileHandler(file));
-            }
-            return rep.code(200).type(file.contentType).send(fs.createReadStream(file.location));
-        });
-    }
+    if (file.skip) return;
+
+    if (!fs.existsSync(file.location)) return;
+
+    const stats = fs.statSync(file.location);
+    if (!stats.isFile()) return;
+
+    const fileMeta = loadMetadata<LocationFileMeta>(file.location, { hidden: false, });
+
+    fastify.get(file.route, async (req, rep) => {
+        if (options.fileHandler) {
+            return options.fileHandler(file, req, rep);
+        }
+        return sendFile(file, fileMeta, stats.size, req, rep);
+    });
 }
